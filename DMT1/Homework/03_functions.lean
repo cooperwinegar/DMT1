@@ -28,7 +28,7 @@ squared.
 @@@ -/
 
 def square : Nat → Nat :=
-  sorry
+  λ (x : Nat) => x^2
 
 /- @@@
 #1 [5 points].
@@ -64,6 +64,8 @@ square.
 def square' : Nat → Nat :=
 λ y => y^2
 
+#eval square' 5
+
 /- @@@
 #4 [5 points].
 
@@ -72,8 +74,7 @@ it be wrong to use α (alpha) conversion
 to rename an argument, *x*, to *y*? Why?
 
 Answer here:
-
-ANSWER: If the variable *y* already has
+If the variable *y* already has
 a meaning in the application term. The new
 variable must not already be used in the code.
 @@@ -/
