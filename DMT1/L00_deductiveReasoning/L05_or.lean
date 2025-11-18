@@ -114,7 +114,7 @@ in Lean's *tactic language*) to *consume/use* them.
 example
   (P Q : Prop)
   (p : P) :
-  P ∨ Q := Or.inl p  -- left introduction
+  P ∨ Q := Or.inl p
 
 example
   (P Q : Prop)
@@ -132,19 +132,84 @@ the possible cases for a proof of P ∨ Q and show that
 in either case R follows.)
 @@@ -/
 
-
 example (x : Nat) : x = 4 ∨ x = 2 → x % 2 = 0 :=
   fun (h : x = 4 ∨ x = 2) =>
     -- Show x%2 = 0 in either case (!!!)
-    Or.elim h     -- two remaining proofs needed
-    -- proof left case: if x = 4 then x%2 = 0
-    (
-      fun xeq4 => by rw [xeq4]
-    )
-    -- proof right case: if x = 2 then x%2 = 0
-    (
-      fun xeq2 => by rw [xeq2]
-    )
+    Or.elim h
+       (fun (h : x = 4) => by rw [h])
+       (fun (h : x = 2) => by rw [h])
+
+/- @@@
+So what's happening at the ends of the two case?
+What is *by rw [h]*. The *by* is a Lean keyword
+that puts Lean in *tactic mode*. In this mode you
+construct proofs mostly by running proof-building
+programs called tactics. They  automate the use of
+basic inference rules and already proved theorems
+to make further progress in a proof construction.
+
+The tactic is call *rw*, short for *rewrite* and
+it is just a convenient way to *use* a proof of an
+equality to rewrite a goal or other proposition
+expressed in terms of one side of any equalty into
+a proposition expressed in terms of the other side.
+
+Use your InfoView to find this intermediate proof
+state:
+
+``` lean
+x : Nat
+h✝ : x = 4 ∨ x = 2
+h : x = 4
+⊢ x % 2 = 0
+```
+
+You have proof of an equality, *h : x = 4* in your
+context, and a goal to prove *x % 2 = 0*. Running
+the *rw [h]* tactic uses the quality to rewrite the
+*x* in the goal (from the left side of the eqality)
+to *4* (from the right side). leaving *4 % 2 = 0*
+as the new goal. The tactic tries to close out the
+proof with *rfl*, which forces *evaluation* of this
+expression, yielding *0 = 0*, which is indeed proved
+by *Eq.refl 0*, with shorthand, using more inference,
+*rfl*.
+@@@ -/
+
+inductive Person : Type
+  | Billy (n : Nat): Person
+  | Mary (n : Nat): Person
+
+#check Person.Billy 5
+
+
+open Person
+
+def age : Person → Nat :=
+  fun (f : Person) => match f with
+  | Billy n => n
+  | Mary n  => n
+
+
+#check Or
+
+/-
+inductive Or (a b : Prop) : Prop where
+  | inl (h : a) : Or a b
+  | inr (h : b) : Or a b
+-/
+
+example (x : Nat) : x = 4 ∨ x = 2 → x % 2 = 0 :=
+  fun (h : x = 4 ∨ x = 2) => match h with
+  | Or.inl p => sorry
+  | Or.inr q => sorry
+
+example {P Q : Prop} : ¬(P ∨ Q) → ¬P ∧ ¬Q :=
+  fun nPorQ =>
+    And.intro
+      (fun p => nPorQ (Or.inl p))
+      (fun q => nPorQ (Or.inr q))
+
 
 /- @@@
 Because x%2=0 is true in either case, whether
